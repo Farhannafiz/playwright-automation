@@ -1,0 +1,17 @@
+{
+  "devDependencies": {
+    "@cucumber/cucumber": "^11.2.0",
+    "@playwright/test": "^1.52.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "modules": "^0.4.0",
+    "node": "^24.2.0",
+    "playwright-cucumber": "^1.0.15"
+  },
+  "scripts": {
+    "test": "bill_calculation",
+    "test:bdd": "cucumber-js --require-module ts-node/register --require features/bill_calculation/*.steps.ts features/bill_calculation/*.feature"
+  }
+}
