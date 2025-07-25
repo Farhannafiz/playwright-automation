@@ -1,0 +1,65 @@
+const { TOTP } = require ("totp-generator")
+const { chromium } = require('playwright');
+
+(async () => {
+  const browser = await chromium.launch({ headless: false }); // Set headless: true for background execution
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  try {
+    // Navigate to the website
+    await page.goto('https://pathshala-dashboard.p-stageenv.xyz/');
+    console.log('Page loaded successfully.');
+
+    // Wait for the Google login button to appear
+    const loginButton = page.locator('div[role="button"]:has(#button-label)');
+    await loginButton.waitFor({ state: 'visible' }); // Wait for the button to be visible
+
+    // Click the Google login button
+    await loginButton.click();
+    console.log('Google login button clicked.');
+
+    // Handle popup for Google login
+    const [googleLoginPage] = await Promise.all([
+      page.waitForEvent('popup'), // Wait for the popup to open
+      loginButton.click(), // Trigger the popup
+    ]);
+
+    // Wait for the email input field
+    await googleLoginPage.waitForSelector('input[type="email"]', { timeout: 30000 });
+    await googleLoginPage.fill('input[type="email"]', 'farhan.nafiz@pathao.com'); // Replace with your email
+    await googleLoginPage.locator('button:has-text("Next")').click();
+    console.log('Email entered and "Next" clicked.');
+
+    // Wait for the password input field
+    await googleLoginPage.waitForSelector('input[type="password"]', { timeout: 30000 });
+    await googleLoginPage.fill('input[type="password"]', 'F@rhannafiz  /;001'); // Replace with your password
+    await googleLoginPage.locator('button:has-text("Next")').click();
+    console.log('Password entered and "Next" clicked.');
+
+    await googleLoginPage.locator('button:has-text("Try another way")').click();
+    console.log('Password entered and "Try another way" clicked.');
+    await googleLoginPage.waitForTimeout(300000); 
+
+    await googleLoginPage.waitForSelector('button:has-text("")', { timeout: 30000 });
+    await googleLoginPage.locator('button:has-text("Google Authenticator")').click();
+    console.log('Password entered and "Google Authenticator app" clicked.');
+    await googleLoginPage.waitForTimeout(15000); 
+
+    const { otp, expires } = TOTP.generate("5jvnjpu5p2aulxw3jltws3yu65sz6zhz")
+    console.log(otp)
+
+    // Optional: Wait for login process to complete
+    await googleLoginPage.waitForTimeout(15000); // Adjust as necessary
+    console.log('Login process completed.');
+
+    // Wait for the main page to load
+    await page.waitForTimeout(15000);
+
+  } catch (error) {
+    console.error('An error occurred:', error);
+  } finally {
+    await browser.close();
+    console.log('Browser closed.');
+  }
+})();
